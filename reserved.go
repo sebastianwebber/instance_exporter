@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -12,15 +11,15 @@ import (
 
 // Reservation contains a definition of a AWS Instance Reservation
 type Reservation struct {
-	ID           string
-	InstanceType string
-	Platform     string
-	OfferClass   string
-	OfferType    string
-	Start        time.Time
-	End          time.Time
-	Duration     int64
-	TimeLeft     float64
+	ID           string    `m:"RI_ID"`
+	InstanceType string    `m:"instance_type"`
+	Platform     string    `m:"platform"`
+	OfferClass   string    `m:"offer_class"`
+	OfferType    string    `m:"offer_type"`
+	Start        time.Time `m:"start"`
+	End          time.Time `m:"duration"`
+	Duration     int64     `m:"end"`
+	TimeLeft     float64   `m:"left"`
 	Count        float64
 	Active       bool
 }
@@ -61,24 +60,34 @@ func updateReserved() {
 	}
 	for _, r := range data {
 
-		labels := []string{
-			r.ID,
-			r.InstanceType,
-			r.Platform,
-			r.OfferClass,
-			r.OfferType,
-			fmt.Sprintf("%v", r.Start),
-			fmt.Sprintf("%d", r.Duration),
-			fmt.Sprintf("%v", r.End),
-			fmt.Sprintf("%.2f", r.TimeLeft),
+		parsed, err := ToMap(r, "m")
+
+		if err != nil {
+			return
 		}
 
+		// fmt.Printf("%#v\n", teste)
+
+		// labels := []string{
+		// 	r.ID,
+		// 	r.InstanceType,
+		// 	r.Platform,
+		// 	r.OfferClass,
+		// 	r.OfferType,
+		// 	fmt.Sprintf("%v", r.Start),
+		// 	fmt.Sprintf("%d", r.Duration),
+		// 	fmt.Sprintf("%v", r.End),
+		// 	fmt.Sprintf("%.2f", r.TimeLeft),
+		// }
+
 		if r.Active {
-			activeReservations.WithLabelValues(labels...).Set(r.Count)
+			// activeReservations.WithLabelValues(labels...).Set(r.Count)
+			activeReservations.With(parsed).Set(r.Count)
 			continue
 		}
 
-		retiredReservations.WithLabelValues(labels...).Set(r.Count)
+		retiredReservations.With(parsed).Set(r.Count)
+		// retiredReservations.WithLabelValues(labels...).Set(r.Count)
 	}
 }
 
