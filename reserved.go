@@ -4,9 +4,9 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 // Reservation contains a definition of a AWS Instance Reservation
@@ -23,12 +23,27 @@ type Reservation struct {
 	Count        float64
 }
 
-func getAWSData() (output []Reservation, err error) {
+var (
+	activeReservations = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "reserved",
+		Subsystem: "active_instances",
+		Name:      "count",
+		Help:      "Number of active reserved instances.",
+	}, []string{
+		"RI_ID",
+		"instance_type",
+		"platform",
+		"offer_class",
+		"offer_type",
+		"start",
+		"duration",
+		"end",
+		"left",
+	})
+)
 
-	session := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(endpoints.UsEast1RegionID),
-	}))
-	svc := ec2.New(session)
+func getReservedInstances() (output []Reservation, err error) {
+
 	input := &ec2.DescribeReservedInstancesInput{
 		Filters: []*ec2.Filter{
 			{

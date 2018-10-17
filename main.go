@@ -6,8 +6,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -17,9 +19,9 @@ func recordMetrics() {
 	for range c {
 		log.Printf("Validating AWS data again...")
 
-		data, _ := getAWSData()
+		data, _ := getReservedInstances()
 		for _, r := range data {
-			activeInstances.WithLabelValues(
+			activeReservations.WithLabelValues(
 				r.ID,
 				r.InstanceType,
 				r.Platform,
@@ -34,24 +36,12 @@ func recordMetrics() {
 	}
 }
 
-var (
-	activeInstances = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "reserved",
-		Subsystem: "active_instances",
-		Name:      "count",
-		Help:      "Number of active reserved instances.",
-	}, []string{
-		"RI_ID",
-		"instance_type",
-		"platform",
-		"offer_class",
-		"offer_type",
-		"start",
-		"duration",
-		"end",
-		"left",
-	})
-)
+func init() {
+	sess = session.Must(session.NewSession(&aws.Config{
+		Region: aws.String(endpoints.UsEast1RegionID),
+	}))
+	svc = ec2.New(sess)
+}
 
 func main() {
 	go recordMetrics()
