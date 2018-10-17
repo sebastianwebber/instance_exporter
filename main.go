@@ -17,7 +17,7 @@ func recordMetrics() {
 
 	updateReserved()
 	reservedTick := time.NewTicker(30 * time.Minute)
-	// for now := range c {
+
 	go func() {
 		for range reservedTick.C {
 			updateReserved()
