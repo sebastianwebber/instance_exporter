@@ -15,8 +15,10 @@ Setup the follow environment variables:
 
 ## how to build (and run)
 
-Use [gin](https://github.com/codegangsta/gin):
+Use [gin](https://github.com/codegangsta/gin)...
 
 ```
 gin
 ```
+
+... And open [http://127.0.0.1:3000/metrics](http://127.0.0.1:3000/metrics)!
