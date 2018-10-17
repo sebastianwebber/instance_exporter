@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -46,8 +45,6 @@ func updateInstances() {
 			r.PublicDNS,
 			r.NameTag,
 		).Set(1.0)
-
-		fmt.Println(r.ID)
 	}
 }
 
