@@ -66,28 +66,12 @@ func updateReserved() {
 			return
 		}
 
-		// fmt.Printf("%#v\n", teste)
-
-		// labels := []string{
-		// 	r.ID,
-		// 	r.InstanceType,
-		// 	r.Platform,
-		// 	r.OfferClass,
-		// 	r.OfferType,
-		// 	fmt.Sprintf("%v", r.Start),
-		// 	fmt.Sprintf("%d", r.Duration),
-		// 	fmt.Sprintf("%v", r.End),
-		// 	fmt.Sprintf("%.2f", r.TimeLeft),
-		// }
-
 		if r.Active {
-			// activeReservations.WithLabelValues(labels...).Set(r.Count)
 			activeReservations.With(parsed).Set(r.Count)
 			continue
 		}
 
 		retiredReservations.With(parsed).Set(r.Count)
-		// retiredReservations.WithLabelValues(labels...).Set(r.Count)
 	}
 }
 
