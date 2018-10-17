@@ -21,4 +21,5 @@ Use [gin](https://github.com/codegangsta/gin)...
 gin
 ```
 
-... And open [http://127.0.0.1:3000/metrics](http://127.0.0.1:3000/metrics)!
+... and open [http://127.0.0.1:3000/metrics](http://127.0.0.1:3000/metrics)!
+
