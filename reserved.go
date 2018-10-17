@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -23,15 +22,11 @@ type Reservation struct {
 	Duration     int64
 	TimeLeft     float64
 	Count        float64
+	Active       bool
 }
 
 var (
-	activeReservations = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "ec2",
-		Subsystem: "reserved_instances",
-		Name:      "active_count",
-		Help:      "Number of active reserved instances.",
-	}, []string{
+	reservationFields = []string{
 		"RI_ID",
 		"instance_type",
 		"platform",
@@ -41,7 +36,19 @@ var (
 		"duration",
 		"end",
 		"left",
-	})
+	}
+	activeReservations = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "ec2",
+		Subsystem: "reserved_instances",
+		Name:      "active_count",
+		Help:      "Number of active reserved instances.",
+	}, reservationFields)
+	retiredReservations = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "ec2",
+		Subsystem: "reserved_instances",
+		Name:      "retired_count",
+		Help:      "Number of retired reserved instances.",
+	}, reservationFields)
 )
 
 func updateReserved() {
@@ -53,7 +60,8 @@ func updateReserved() {
 		log.Fatalf("Could not get Reserved Instances: %v\n", err)
 	}
 	for _, r := range data {
-		activeReservations.WithLabelValues(
+
+		labels := []string{
 			r.ID,
 			r.InstanceType,
 			r.Platform,
@@ -63,22 +71,20 @@ func updateReserved() {
 			fmt.Sprintf("%d", r.Duration),
 			fmt.Sprintf("%v", r.End),
 			fmt.Sprintf("%.2f", r.TimeLeft),
-		).Set(r.Count)
+		}
+
+		if r.Active {
+			activeReservations.WithLabelValues(labels...).Set(r.Count)
+			continue
+		}
+
+		retiredReservations.WithLabelValues(labels...).Set(r.Count)
 	}
 }
 
 func getReservedInstances() (output []Reservation, err error) {
 
-	input := &ec2.DescribeReservedInstancesInput{
-		Filters: []*ec2.Filter{
-			{
-				Name: aws.String("state"),
-				Values: []*string{
-					aws.String("active"),
-				},
-			},
-		},
-	}
+	input := &ec2.DescribeReservedInstancesInput{}
 
 	result, err := svc.DescribeReservedInstances(input)
 	if err != nil {
@@ -103,6 +109,7 @@ func getReservedInstances() (output []Reservation, err error) {
 			End:          endDate,
 			Duration:     duration,
 			TimeLeft:     left.Seconds(),
+			Active:       *result.ReservedInstances[i].State == "active",
 		})
 	}
 	return
