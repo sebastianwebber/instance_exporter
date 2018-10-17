@@ -1,6 +1,6 @@
-# reserved_exporter
+# instance_exporter
 
-
+Prometheus exporter for ec2 instances metrics.
 
 ## Dependencies
 
