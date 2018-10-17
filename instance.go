@@ -28,6 +28,7 @@ var (
 		"id",
 		"instance_type",
 		"dns",
+		"name_tag",
 	})
 )
 
@@ -43,6 +44,7 @@ func updateInstances() {
 			r.ID,
 			r.Type,
 			r.PublicDNS,
+			r.NameTag,
 		).Set(1.0)
 
 		fmt.Println(r.ID)
@@ -71,14 +73,24 @@ func getEC2Instances() (output []Instance, err error) {
 
 		for i := 0; i < len(result.Reservations[reserv].Instances); i++ {
 
-			fmt.Println(*result.Reservations[reserv].Instances[i])
 			output = append(output, Instance{
 				ID:        *result.Reservations[reserv].Instances[i].InstanceId,
 				Type:      *result.Reservations[reserv].Instances[i].InstanceType,
 				PublicDNS: *result.Reservations[reserv].Instances[i].PublicDnsName,
-				// NameTag: *result.Reservations[reserv].Instances[i].Tags
+				NameTag:   getTag(result.Reservations[reserv].Instances[i].Tags, "Name"),
 			})
 		}
 	}
+	return
+}
+
+func getTag(tags []*ec2.Tag, key string) (out string) {
+	for _, t := range tags {
+		if *t.Key == key {
+			out = *t.Value
+			break
+		}
+	}
+
 	return
 }
