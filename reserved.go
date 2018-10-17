@@ -48,6 +48,12 @@ var (
 		Name:      "retired_count",
 		Help:      "Number of retired reserved instances.",
 	}, reservationFields)
+	timeLeftReservations = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "ec2",
+		Subsystem: "reserved_instances",
+		Name:      "time_left",
+		Help:      "Number of seconds left for reserved instances.",
+	}, reservationFields)
 )
 
 func updateReserved() {
@@ -68,6 +74,7 @@ func updateReserved() {
 
 		if r.Active {
 			activeReservations.With(parsed).Set(r.Count)
+			timeLeftReservations.With(parsed).Set(r.TimeLeft)
 			continue
 		}
 
