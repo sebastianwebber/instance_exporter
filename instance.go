@@ -67,9 +67,7 @@ func getEC2Instances() (output []Instance, err error) {
 	}
 
 	for reserv := 0; reserv < len(result.Reservations); reserv++ {
-
 		for i := 0; i < len(result.Reservations[reserv].Instances); i++ {
-
 			output = append(output, Instance{
 				ID:        *result.Reservations[reserv].Instances[i].InstanceId,
 				Type:      *result.Reservations[reserv].Instances[i].InstanceType,
