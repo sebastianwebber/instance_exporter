@@ -17,8 +17,8 @@ type Reservation struct {
 	OfferClass   string    `m:"offer_class"`
 	OfferType    string    `m:"offer_type"`
 	Start        time.Time `m:"start"`
-	End          time.Time `m:"duration"`
-	Duration     int64     `m:"end"`
+	End          time.Time `m:"end"`
+	Duration     int64     `m:"duration"`
 	TimeLeft     float64   `m:"left"`
 	Count        float64
 	Active       bool
@@ -63,7 +63,7 @@ func updateReserved() {
 		parsed, err := ToMap(r, "m")
 
 		if err != nil {
-			return
+			log.Fatalf("Could not parse reserved instances: %v\n", err)
 		}
 
 		if r.Active {
