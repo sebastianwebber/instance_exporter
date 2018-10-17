@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -14,26 +13,16 @@ import (
 )
 
 func recordMetrics() {
-	c := time.Tick(15 * time.Second)
-	// for now := range c {
-	for range c {
-		log.Printf("Validating AWS data again...")
+	log.Println("Starting instance_exporter...")
 
-		data, _ := getReservedInstances()
-		for _, r := range data {
-			activeReservations.WithLabelValues(
-				r.ID,
-				r.InstanceType,
-				r.Platform,
-				r.OfferClass,
-				r.OfferType,
-				fmt.Sprintf("%v", r.Start),
-				fmt.Sprintf("%d", r.Duration),
-				fmt.Sprintf("%v", r.End),
-				fmt.Sprintf("%.2f", r.TimeLeft),
-			).Set(r.Count)
+	updateReserved()
+	reservedTick := time.NewTicker(30 * time.Minute)
+	// for now := range c {
+	go func() {
+		for range reservedTick.C {
+			updateReserved()
 		}
-	}
+	}()
 }
 
 func init() {
@@ -47,5 +36,7 @@ func main() {
 	go recordMetrics()
 
 	http.Handle("/metrics", promhttp.Handler())
-	http.ListenAndServe(":3001", nil)
+	if err := http.ListenAndServe(":3001", nil); err != nil {
+		log.Fatalf("Could not start webserver: %v", err)
+	}
 }

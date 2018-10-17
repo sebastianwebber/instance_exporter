@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -25,9 +27,9 @@ type Reservation struct {
 
 var (
 	activeReservations = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "reserved",
-		Subsystem: "active_instances",
-		Name:      "count",
+		Namespace: "ec2",
+		Subsystem: "reserved_instances",
+		Name:      "active_count",
 		Help:      "Number of active reserved instances.",
 	}, []string{
 		"RI_ID",
@@ -41,6 +43,29 @@ var (
 		"left",
 	})
 )
+
+func updateReserved() {
+	log.Println("Update Reserved Instances data...")
+
+	data, err := getReservedInstances()
+
+	if err != nil {
+		log.Fatalf("Could not get Reserved Instances: %v\n", err)
+	}
+	for _, r := range data {
+		activeReservations.WithLabelValues(
+			r.ID,
+			r.InstanceType,
+			r.Platform,
+			r.OfferClass,
+			r.OfferType,
+			fmt.Sprintf("%v", r.Start),
+			fmt.Sprintf("%d", r.Duration),
+			fmt.Sprintf("%v", r.End),
+			fmt.Sprintf("%.2f", r.TimeLeft),
+		).Set(r.Count)
+	}
+}
 
 func getReservedInstances() (output []Reservation, err error) {
 
