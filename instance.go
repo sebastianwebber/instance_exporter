@@ -23,7 +23,7 @@ var (
 		Namespace: "ec2",
 		Subsystem: "running_instances",
 		Name:      "count",
-		Help:      "Number of active reserved instances.",
+		Help:      "Number of ec2 running instances.",
 	}, []string{
 		"id",
 		"instance_type",
@@ -90,6 +90,10 @@ func getTag(tags []*ec2.Tag, key string) (out string) {
 			out = *t.Value
 			break
 		}
+	}
+
+	if out == "" {
+		out = "TAG_NOT_FOUND"
 	}
 
 	return
