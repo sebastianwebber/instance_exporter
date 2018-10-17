@@ -11,10 +11,10 @@ import (
 
 // Instance contains a definition of a AWS EC2 Instance
 type Instance struct {
-	ID        string
-	Type      string
-	PublicDNS string
-	NameTag   string
+	ID        string `m:"id"`
+	Type      string `m:"instance_type"`
+	PublicDNS string `m:"dns"`
+	NameTag   string `m:"name_tag"`
 }
 
 var (
@@ -39,12 +39,14 @@ func updateInstances() {
 		log.Fatalf("Could not get EC2 Instances: %v\n", err)
 	}
 	for _, r := range data {
-		runningInstances.WithLabelValues(
-			r.ID,
-			r.Type,
-			r.PublicDNS,
-			r.NameTag,
-		).Set(1.0)
+
+		parsed, err := ToMap(r, "m")
+
+		if err != nil {
+			log.Fatalf("Could not parse instance: %v", err)
+		}
+
+		runningInstances.With(parsed).Set(1.0)
 	}
 }
 
