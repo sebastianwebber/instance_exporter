@@ -105,7 +105,7 @@ func getReservedInstances() (output []Reservation, err error) {
 		duration := *result.ReservedInstances[i].Duration
 		startDate := *result.ReservedInstances[i].Start
 		endDate := startDate.Add(time.Second * time.Duration(duration))
-		left := endDate.Sub(startDate)
+		left := endDate.Sub(time.Now())
 
 		output = append(output, Reservation{
 			ID:           *result.ReservedInstances[i].ReservedInstancesId,
