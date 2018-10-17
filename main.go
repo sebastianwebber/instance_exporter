@@ -23,6 +23,16 @@ func recordMetrics() {
 			updateReserved()
 		}
 	}()
+
+	updateInstances()
+
+	instancesTick := time.Tick(1 * time.Minute)
+	go func() {
+		for range instancesTick {
+			updateInstances()
+		}
+	}()
+
 }
 
 func init() {
